@@ -8,5 +8,6 @@
    "Multiple strings in the description will become separate paragraphs.")
   (authors "Song Lin")
   (license "MIT")
-  (depends ("chez-srfi" ">=0.0.0-akku <1.0.0"))
+  (depends ("json-tools" "^0.1.1-akku.15.7.23")
+           ("chez-srfi" ">=0.0.0-akku <1.0.0"))
 )
