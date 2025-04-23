@@ -1,0 +1,15 @@
+{
+  "$type": "ScriptNodeData, Assembly-CSharp",
+  "Scripts": {
+    "$type": "System.Collections.Generic.List`1[[ScriptData, Assembly-CSharp]], mscorlib",
+    "$values": []
+  },
+  "NodeName": null,
+  "Guid": null,
+  "ConnectionsTo": {
+    "$type": "System.Collections.Generic.List`1[[System.Guid, mscorlib]], mscorlib",
+    "$values": []
+  },
+  "X": null,
+  "Y": null
+}

@@ -1,0 +1,18 @@
+(alias init azure-archive-project-init)
+(alias entry azure-archive-add-entry-node)
+(alias script azure-archive-add-script-node)
+
+;; (("凛" "琳") . "린")
+
+;; BgName BgFriendlyName
+(init "测试项目")
+(entry "夏莱之夜" "和野宫的一晚")
+(script "加班中"
+	(speaker "野宫" at 3)
+	(text "老师...?")
+	(text "这么晚了，你还在工作吗？")
+	)
+(selections (""))
+
+
+

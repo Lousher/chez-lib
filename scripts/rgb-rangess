@@ -1,0 +1,48 @@
+#!/usr/local/bin/chez --script
+
+(import (only (base) string-split list-group list-cartesian-product show-color))
+(define range-list
+  (lambda (start end step)
+    (let acc ([num start] [res '()])
+      (if (> num end) (reverse res)
+	(acc (+ num step) (cons num res))))))
+
+(define range-str-arg->range-list
+  (lambda (str)
+    (let* ([arg-strs (string-split str #\-)]
+	   [nums (map string->number arg-strs)])
+      (case (length nums)
+	[1 nums]
+	[2 (apply range-list (append nums (list 1)))]
+	[3 (apply range-list nums)]))))
+
+(define args->rgb-range-list
+  (lambda (args)
+    (let* ([rgb-alist (list-group args 2)]
+	   [rgb-ranges-nums (map
+			      (lambda (ap)
+				(cons (car ap)
+				      (range-str-arg->range-list (cadr ap))))
+			      rgb-alist)])
+      rgb-ranges-nums)))
+
+(define rgb-range-list->rgb-color
+  (lambda (ranges)
+    (let* ([get-color-range (lambda (flag) (cdr (assoc flag ranges)))]
+	   [r-range (get-color-range "-r")]
+	   [g-range (get-color-range "-g")]
+	   [b-range (get-color-range "-b")])
+      (map (lambda (rgbs) (apply rgb-nums->rgb-color rgbs)) (list-cartesian-product r-range g-range b-range))
+      )))
+
+(define rgb-nums->rgb-color
+  (lambda (r g b)
+    (let ([rgb-hex (map (lambda (n) (number->string n 16)) (list r g b))])
+      (apply format "#~2,'0D~2,'0D~2,'0D" rgb-hex))))
+
+(let ([line 1])
+  (for-each
+    (lambda (x)
+      (show-color (format "~a--~a\n" x line))
+      (set! line (+ line 1)))
+    (rgb-range-list->rgb-color (args->rgb-range-list (cdr (command-line))))))

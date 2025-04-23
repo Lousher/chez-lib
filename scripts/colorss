@@ -1,0 +1,21 @@
+#!/usr/local/bin/chez --script
+
+(import
+  (only (base) list-group rgb-str->rgb-nums show-color))
+      
+(define show-colors
+  (lambda strs
+    (for-each show-color strs)))
+
+(define process-pipe
+  (lambda ()
+    (let consume ([line (get-line (current-input-port))])
+      (unless (eof-object? line)
+	(show-color line)
+	(newline)
+	(consume (get-line (current-input-port)))))))
+
+(let ([cli-args (cdr (command-line))])
+  (if (null? cli-args)
+    (process-pipe)
+    (apply show-colors cli-args)))

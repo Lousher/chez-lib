@@ -1,0 +1,12 @@
+{
+  "$type": "EntryNodeData, Assembly-CSharp",
+  "Title": null,
+  "Header": null,
+  "Guid": "00000000-0000-0000-0000-000000000000",
+  "ConnectionsTo": {
+    "$type": "System.Collections.Generic.List`1[[System.Guid, mscorlib]], mscorlib",
+    "$values": []
+  },
+  "X": 0.0,
+  "Y": 0.0
+}

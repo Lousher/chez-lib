@@ -1,0 +1,62 @@
+(define AZURE_ARCHIVE_PROJECTS_DIRECTORY
+  "~/Library/Containers/56198FBC-176A-449B-9523-8DCCA112819F/Data/Documents/data/projects")
+
+(define AZURE_CURRENT_PROJECT_NAME "")
+(define AZURE_ARCHIVE_PROJECT_TEMPLATE_DIRECTORY
+  "/Users/song.lin/Desktop/MiracleBegin/Fun/chez-lib/azure-archive/template")
+
+(define x-generate (lambda () 0.0))
+(define y-generate
+  (let ([y 0.0])
+    (lambda ()
+      (set! y (- y 100))
+      y)))
+
+(define azure-archive-current-project
+  (lambda ()
+    AZURE_CURRENT_PROJECT_NAME))
+
+(define guid-generate
+  (lambda ()
+    (get-line
+     (car (process "uuidgen | tr 'A-F' 'a-f'")))))
+
+(define make-entry-node
+  (lambda (title header)
+    (let ([template (call-with-input-file
+			(format "~a/~a" AZURE_ARCHIVE_PROJECT_TEMPLATE_DIRECTORY "entrynode.json")
+		      get-string-all)])
+      (format template header title (x-generate) (y-generate)))))
+
+(define make-script-node
+  (lambda (name)
+    (let ([template (call-with-input-file
+			(format "~a/~a" AZURE_ARCHIVE_PROJECT_TEMPLATE_DIRECTORY "scriptnode.json")
+		      get-string-all)])
+      (format template name (guid-generate) (x-generate) (y-generate)))))
+
+(define make-selection-node
+  (lambda ()
+    (let ([template (call-with-input-file
+			(format "~a/~a" AZURE_ARCHIVE_PROJECT_TEMPLATE_DIRECTORY "selectionnode.json")
+		      get-string-all)])
+      (format template (guid-generate) (x-generate) (y-generate)))))
+
+(define azure-archive-project-init
+  (lambda (project-name title header)
+    (set! AZURE_CURRENT_PROJECT_NAME project-name)
+    (let ([template (call-with-input-file
+			(format "~a/~a" AZURE_ARCHIVE_PROJECT_TEMPLATE_DIRECTORY "init.json")
+		      get-string-all)])
+      (call-with-output-file
+	  (format "~a/~a.aap" AZURE_ARCHIVE_PROJECTS_DIRECTORY project-name)
+	(lambda (out)
+	  (format out template project-name header title title header))))))
+
+(define azure-archive-insert-node
+  (lambda (node)
+    (call-with-output-file
+	"temp.node"
+      (lambda (port)
+	(display node port)))))
+

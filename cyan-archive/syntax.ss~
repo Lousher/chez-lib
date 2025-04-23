@@ -1,0 +1,155 @@
+(define PROJECTS_DIRECTORY
+  "~/Library/Containers/56198FBC-176A-449B-9523-8DCCA112819F/Data/Documents/data/projects")
+(define TEMPLATE_DIRECTORY
+  "/Users/song.lin/Desktop/MiracleBegin/Fun/chez-lib/azure-archive/template")
+(define complement
+  (lambda (pred)
+    (lambda args
+      (not (apply pred args)))))
+(define azure-archive-show-projects
+  (lambda ()
+    (map path-last
+	 (filter (complement file-directory?)
+		 (map
+		  (lambda (name) (string-append PROJECTS_DIRECTORY (string (directory-separator)) name))
+		  (directory-list PROJECTS_DIRECTORY))))))
+(define jq-ProjectName-selector ".ProjectName")
+(define guid-generate
+  (lambda ()
+    (get-line (car (process "uuidgen | tr 'A-F' 'a-f'")))))
+(define x-generate (lambda () 0.0))
+(define y-generate
+  (let ([y 0.0])
+    (lambda ()
+      (set! y (- y 200.0))
+      y)))
+(define jq-Title-selector ".Title")
+(define jq-Header-selector ".Header")
+(define jq-PreviewHeader-selector ".PreviewHeader")
+(define jq-PreviewTitle-selector ".PreviewTitle")
+(define jq-Guid-selector ".Guid")
+(define jq-NodeName-selector ".NodeName")
+(define jq-X-selector ".X")
+(define jq-Y-selector ".Y")
+(define jq-nodes-selector ".nodes.\"$values\"")
+(define jq-text-selector ".text")
+(define jq-voice-selector ".voice")
+(define jq-speaker-selector ".speakerSlotNum")
+(define jq-highlights-selector ".highlightedSlotNums.\"$values\"")
+
+(define-record-type project
+  (nongenerative)
+  (fields name
+	  (mutable nodes)))
+(define-record-type node
+  (nongenerative)
+  (fields type guid (mutable to) (mutable values)))
+(define-record-type script-data
+  (nongenerative)
+  (fields
+   guid
+   (mutable text)
+   (mutable characters)
+   (mutable speaker)
+   (mutable highlights)))
+(define-record-type character
+  (nongenerative)
+  (fields
+   (mutable name)
+   (mutable faceId)
+   (mutable startingPos)
+   (mutable endingPos)
+   (mutable emoticon)
+   (mutable action)
+   (mutable effect)
+   (mutable appear)
+   (mutable shapeOverride)))
+(define CURRENT_PROJECT "")
+(define azure-archive-current-project
+  (lambda () CURRENT_PROJECT))
+(define azure-archive-init-project
+  (lambda (project-name header title)
+    (set! CURRENT_PROJECT project-name)
+    (system
+     (format "cd ~a && jq '~a =\"~a\" | ~a = \"~a\" | ~a = \"~a\" | ~a = \"~a\" | ~a = \"~a\"' init.cat > ~a/~a.aap"
+	     TEMPLATE_DIRECTORY
+	     jq-ProjectName-selector project-name
+	     jq-PreviewHeader-selector header
+	     jq-PreviewTitle-selector title
+	     (format "(~a[0] | ~a)" jq-nodes-selector jq-Header-selector) header
+	     (format "(~a[0] | ~a)" jq-nodes-selector jq-Title-selector) title
+	     PROJECTS_DIRECTORY project-name))
+    (make-project project-name (list (make-node 'entry "00000000-0000-0000-0000-000000000000" #f '())))))
+
+(define azure-archive-script-node
+  (lambda (name)
+    (let ([guid (guid-generate)])
+      (system
+       (format "cd ~a && jq '~a = \"~a\" | ~a = \"~a\" | ~a = \"~a\" | ~a = \"~a\"' scriptnode.cat > ~a/~a"
+	       TEMPLATE_DIRECTORY
+	       jq-NodeName-selector name
+	       jq-Guid-selector guid
+	       jq-X-selector (x-generate)
+	       jq-Y-selector (y-generate)
+	       PROJECTS_DIRECTORY guid))
+      (make-node 'script guid #f '()))))
+
+(define azure-archive-update-file
+  (lambda (project)
+    (delete-file (format "~a/~a.aap" PROJECTS_DIRECTORY (project-name project)))
+    (rename-file (format "~a/~a.aap.bak" PROJECTS_DIRECTORY (project-name project)) (format "~a/~a.aap" PROJECTS_DIRECTORY (project-name project)))))
+    
+(define azure-archive-add-node
+  (lambda (project node)
+    (system
+     (format "cd ~a && jq '~a += [input]' ~a.aap ~a > ~a.aap.bak"
+	     PROJECTS_DIRECTORY
+	     jq-nodes-selector
+	     (project-name project)
+	     (node-guid node)
+	     (project-name project)))
+    (azure-archive-update-file project)
+    (project-nodes-set! project (append (project-nodes project) (list node)))
+    project))
+
+(define azure-archive-entry-node
+  (lambda (project)
+    (car (project-nodes project))))
+
+(define azure-archive-link-node
+  (lambda (project start-node end-node)
+    (system
+     (format "cd ~a && jq '(~a[] | select(.Guid == \"~a\").ConnectionsTo).\"$values\" += [\"~a\"]' ~a.aap > ~a.aap.bak"
+	     PROJECTS_DIRECTORY
+	     jq-nodes-selector (node-guid start-node)
+	     (node-guid end-node)
+	     (project-name project)
+	     (project-name project)))
+    (azure-archive-update-file project)
+    (node-to-set! start-node (node-guid end-node))
+    project))
+
+(define azure-archive-script-data-node
+  (lambda (text)
+    (let ([guid (guid-generate)])
+    (system
+     (format "cd ~a && jq '~a = \"~a\" | ~a = \"~a\"' scriptdata.cat > ~a/~a"
+	     TEMPLATE_DIRECTORY
+	     jq-text-selector text
+	     jq-voice-selector guid
+	     PROJECTS_DIRECTORY guid))
+    (make-script-data guid text '() 0 '()))))
+
+(define azure-archive-insert-script-data
+  (lambda (project script-node script-data)
+    (let ([name (project-name project)]
+	  [node-guid (node-guid script-node)]
+	  [data-guid (script-data-guid script-data)])
+      (system
+       (format "cd ~a && jq '(.nodes.\"$values\"[] | select(.Guid == \"~a\")).Scripts.\"$values\" += [input]' ~a.aap ~a > ~a.aap.bak"
+       PROJECTS_DIRECTORY
+       node-guid name data-guid name))
+      (azure-archive-update-file project)
+      (node-values-set! script-node
+			(append (node-values script-node) (list script-data))))))
+

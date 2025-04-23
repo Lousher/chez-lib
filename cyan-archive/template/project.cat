@@ -1,0 +1,11 @@
+{
+  "$type": "ProjectData, Assembly-CSharp",
+  "ProjectName": null,
+  "PreviewBgName": 1047754314,
+  "PreviewHeader": null,
+  "PreviewTitle": null,
+  "nodes": {
+    "$type": "System.Collections.Generic.List`1[[NodeData, Assembly-CSharp]], mscorlib",
+    "$values": []
+  }
+}
