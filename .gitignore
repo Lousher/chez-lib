@@ -1,2 +1,10 @@
 .akku
 *.so
+
+*.ss~
+*.ss#*
+.#*.ss
+
+*.scm~
+*.scm#*
+.#*.scm
