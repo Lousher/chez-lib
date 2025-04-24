@@ -31,5 +31,4 @@
 	   out))))))
  
 (let ([file-names (cdr (command-line))])
-  (assert (for-all (lambda (name) (string=? "json" (filename-suffix name))) file-names))
   (for-each json-file->record-file! file-names))
