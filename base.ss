@@ -2,6 +2,9 @@
   (base)
 
   (export
+   list-last
+    filename-name
+    filename-suffix
     ->boolean
     list-cartesian-product
     current-continuation
@@ -28,8 +31,22 @@
     )
 
   (import
-    (chezscheme))
+   (chezscheme))
 
+  (define filename-name
+    (lambda (filename)
+      (let ([back-in (string-index-back filename #\.)])
+	(substring filename 0 back-in))))
+
+  (define list-last
+    (lambda (li)
+      (let ([len (length li)])
+	(list-ref li (- len 1)))))
+
+  (define filename-suffix
+    (lambda (filename)
+      (list-last (string-split filename #\.))))
+  
   (define ->boolean
     (lambda (f)
       (lambda args

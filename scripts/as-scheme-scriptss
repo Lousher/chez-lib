@@ -1,0 +1,20 @@
+#!/usr/local/bin/chez --script
+(import (base))
+
+(define CHEZ_SHEBANG "#!/usr/local/bin/chez --script")
+(define chmod-and-rename-scheme-script
+  (lambda (filename)
+    (system (format "chmod +x ~a" filename))
+    (rename-file filename (format "~ass" (filename-name filename)))))
+
+(define insert-chez-scheme-script-shebang
+  (lambda (filename)
+    (system (format "{ echo \"~a\"; cat ~a; } > tmp && mv tmp ~a"
+		    CHEZ_SHEBANG filename filename))))
+
+(let ([file-names (cdr (command-line))])
+  (for-each
+   (lambda (name)
+     (insert-chez-scheme-script-shebang name)
+     (chmod-and-rename-scheme-script name))
+   file-names))
