@@ -1,0 +1,12 @@
+{
+  "$type": "ScriptData+CharacterRecordData, Assembly-CSharp",
+  "name": "",
+  "faceId": "00",
+  "startingPos": 0,
+  "endingPos": 0,
+  "emoticon": -1,
+  "action": 0,
+  "effect": 0,
+  "appear": 0,
+  "shapeOverride": 0
+}
