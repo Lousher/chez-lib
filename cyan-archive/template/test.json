@@ -1,0 +1,91 @@
+{
+  "enterprise": {
+    "name": "FutureTech Industries",
+    "founded": 2015,
+    "active": true,
+    "stock_info": {
+      "ticker": "FTEC",
+      "price": 245.67,
+      "market_cap": "15.2B",
+      "52_week_range": [185.50, 289.30],
+      "dividend_yield": 2.15
+    },
+    "departments": [
+      {
+        "name": "R&D",
+        "budget": 4500000,
+        "teams": [
+          {
+            "team_id": "RD-2023",
+            "specialization": "AI/ML",
+            "projects": [
+              {
+                "project_code": "AETHER",
+                "deadline": "2024-03-15",
+                "milestones": [
+                  {
+                    "name": "Prototype Alpha",
+                    "completed": true,
+                    "dependencies": ["CLOUD-[>64;2500;0c]10;rgb:d8b1/f7c8/fec8\]11;rgb:0000/0000/0000\INFRA", "DATA-LAKE"]
+                  },
+                  {
+                    "name": "Neural Optimization",
+                    "completed": false,
+                    "blockers": ["GPU shortages", "Regulatory approval"]
+                  }
+                ]
+              }
+            ],
+            "members": {
+              "lead": "Dr. Amelia Chen",
+              "staff": 18,
+              "vacancies": 2
+            }
+          }
+        ]
+      },
+      {
+        "name": "Operations",
+        "budget": 3200000,
+        "facilities": [
+          {
+            "location": "Singapore",
+            "coordinates": {
+              "lat": 1.3521,
+              "lng": 103.8198
+            },
+            "capacity": {
+              "employees": 450,
+              "servers": 15000
+            },
+            "security": {
+              "biometric": true,
+              "cyber_certifications": ["ISO27001", "SOC2"]
+            }
+          }
+        ]
+      }
+    ],
+    "partners": [
+      {
+        "company": "QuantumLeap LLC",
+        "collaborations": [
+          {
+            "type": "joint_venture",
+            "field": "Quantum Computing",
+            "nda_required": true
+          }
+        ],
+        "shared_resources": {
+          "datacenters": 3,
+          "patents": ["QC-2023-8765", "QC-2023-8921"]
+        }
+      }
+    ],
+    "system_metadata": {
+      "last_updated": "2023-11-07T14:23:18Z",
+      "schema_version": 2.8,
+      "checksum": "a3f4de56b2c79e8011c4382b9aae7421"
+    }
+  }
+}

@@ -2,6 +2,13 @@
   (base)
 
   (export
+   compose
+   flatten
+   complement
+   json-null?
+   any-of
+   all-of
+   expand-top-level
    list-last
     filename-name
     filename-suffix
@@ -33,6 +40,51 @@
   (import
    (chezscheme))
 
+  (define compose-2
+    (lambda (f g)
+      (lambda args
+	(f (apply g args)))))
+
+  (define compose
+    (lambda funs
+      (fold-right
+       (lambda (pre-func total-f)
+	 (compose-2 pre-func total-f))
+       (list-last funs)
+       (list-head funs (- (length funs) 1)))))
+  (define flatten
+    (lambda (li)
+      (cond
+       [(null? li) '()]
+       [(not (pair? li)) (list li)]
+       [else (append (flatten (car li))
+		     (flatten (cdr li)))])))
+  (define complement
+    (lambda (f)
+      (lambda args
+	(not (apply f args)))))
+
+  (define json-null?
+    (lambda (x)
+      (eqv? 'null x)))
+
+  (define-syntax all-of
+    (syntax-rules ()
+      [(_ pred ...)
+       (lambda (x)
+	 (and
+	  (pred x) ...))]))
+  (define-syntax any-of
+    (syntax-rules ()
+      [(_ pred ...)
+       (lambda (x)
+	 (or
+	  (pred x) ...))]))
+  (define-syntax expand-top-level
+  (syntax-rules ()
+    [(_ '(stx rest ...))
+     (syntax->datum
+      ((top-level-syntax 'stx) #'(_ rest ...)))]))
   (define filename-name
     (lambda (filename)
       (let ([back-in (string-index-back filename #\.)])

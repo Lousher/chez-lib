@@ -1,34 +1,86 @@
 #!/usr/local/bin/chez --script
 (import (json))
+(import (data von))
 (import (base))
+
 (define-syntax simple-define-mutable-record
   (lambda (stx)
     (syntax-case stx ()
-      [(_ name (keys ...))
-       #`(define-record-type name
-	   (fields
-	    #,@(map
-		(lambda (stx)
-		  #`(mutable #,stx))
-		(syntax->list #'(keys ...)))))])))
-(define-syntax expand-top-level
-  (syntax-rules ()
-    [(_ '(stx rest ...))
-     (syntax->datum
-      ((top-level-syntax 'stx) #'(_ rest ...)))]))
-(define json-file->record-file!
-  (lambda (json-name)
-    (let* ([von (call-with-input-file json-name json-read)]
-	   [keys (vector-map (lambda (item) (string->symbol (car item))) von)]
-	   [name (filename-name json-name)])
-      (call-with-output-file (format "~a.ss" name)
-	(lambda (out)
-	  (pretty-print
-	   (eval `(expand-top-level
-		   '(simple-define-mutable-record
-		     ,(string->symbol name)
-		     ,(vector->list keys))))
-	   out))))))
- 
-(let ([file-names (cdr (command-line))])
-  (for-each json-file->record-file! file-names))
+      [(_ name (field-spec ...))
+       (with-syntax
+	   ([args (datum->syntax
+		   #'name
+		   (filter atom? (syntax->datum #'(field-spec ...))))]
+	    [params (datum->syntax
+		     #'name
+		     (append '(list) (map (lambda (x) (if (atom? x) x (cadr x))) (syntax->datum #'(field-spec ...)))))]
+	    [keys (datum->syntax
+		   #'name
+		   (map (lambda (x) (if (atom? x) x (car x))) (syntax->datum #'(field-spec ...))))])
+	 #`(define-record-type name
+	     (fields
+	      #,@(map (lambda (stx) #`(mutable #,stx))
+		      (syntax->list #'keys)))
+	     (protocol
+	      (lambda (new)
+		(lambda args
+		  (apply new params))))))])))
+
+(define collect-records-fields
+  (lambda (von)
+    (cond
+     [(list? von) (map collect-records-fields von)]
+     [(von-simple-object? von) (vector-map car von)]
+     [else
+      (let* ([vals (vector-map cdr von)]
+	     [von-vals (filter
+			(any-of vector? list?)
+			(vector->list vals))])
+	(cons (vector-map car von)
+	      (map collect-records-fields von-vals)))])))
+(define sort-records-fields
+  (lambda (vectors)
+    (sort (lambda (x y) (< (equal-hash x) (equal-hash y))) vectors)))
+(define remove-duplicated-in-order
+  (lambda (vectors)
+    (fold-left
+     (lambda (acc vector)
+       (if (equal? vector (list-last acc)) acc
+	   (append acc (list vector))))
+     (list (car vectors))
+     (cdr vectors))))
+
+(define json-file->record-fileds
+  (lambda (file)
+    (let ([von (call-with-input-file file json-read)])
+      (remove-duplicated-in-order
+       (sort-records-fields (flatten
+	(collect-records-fields von)))))))
+
+(define @ask-output-file-name
+  (lambda ()
+    (display "Please name the output file.\n")
+    (symbol->string (read))))
+(define @ask-record-name-with
+  (lambda (vec)
+    (display
+     (format "Please name the record with following fields: ~a\n" vec))
+    (symbol->string (read))))
+
+(let* ([files (cdr (command-line))]
+       [record-fields (flatten (map json-file->record-fileds files))]
+       [output-file (@ask-output-file-name)])
+  (for-each
+   (lambda (fields-vector)
+     (let ([record-name (@ask-record-name-with fields-vector)])
+       (call-with-output-file output-file
+	 (lambda (out)
+	   (pretty-print
+	    (eval `(expand-top-level
+		    '(simple-define-mutable-record
+		     ,(string->symbol record-name)
+		     ,(vector->list
+		       (vector-map string->symbol fields-vector)))))
+	    out))
+	 '(append))))
+   record-fields))
