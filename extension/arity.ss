@@ -1,16 +1,17 @@
-
 (library
     (extension arity)
 
   (export
    negative-arity->procedure-wrapper
    positive-arity->procedure-wrapper
+   procedure-arity-valid?
    procedures-arity-mask
    procedure-arity-restrict
+   procedure-arity-min
    )
 
   (import
-   (combinator)
+   (syntax base)
    (extension bitwise)
    (chezscheme))
 
@@ -64,5 +65,18 @@
 	  (eval `(positive-arity->procedure-wrapper ,n) (environment '(extension arity)))
 	  (eval `(negative-arity->procedure-wrapper ,n) (environment '(extension arity))))])
 	(wrapper proc))))
+  (define procedure-arity-min
+    (lambda (proc)
+      (assert (procedure? proc))
+      (bitwise-first-bit-set (procedure-arity-mask proc))))
+  
+  (define procedure-arity-valid?
+    (lambda (proc . arities)
+      (assert (procedure? proc))
+      (assert (for-all fixnum? arities))
+      (let ([mask (procedure-arity-mask proc)])
+	(for-all ((partial mask %) bitwise-bit-set?) arities))))
+
+
 
 )
