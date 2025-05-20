@@ -7,6 +7,7 @@
    procedure-arity-valid?
    procedures-arity-mask
    procedure-arity-restrict
+   procedure-arity-min
    )
 
   (import
@@ -64,7 +65,11 @@
 	  (eval `(positive-arity->procedure-wrapper ,n) (environment '(extension arity)))
 	  (eval `(negative-arity->procedure-wrapper ,n) (environment '(extension arity))))])
 	(wrapper proc))))
-
+  (define procedure-arity-min
+    (lambda (proc)
+      (assert (procedure? proc))
+      (bitwise-first-bit-set (procedure-arity-mask proc))))
+  
   (define procedure-arity-valid?
     (lambda (proc . arities)
       (assert (procedure? proc))

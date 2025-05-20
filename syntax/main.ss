@@ -1,6 +1,8 @@
 (library
     (syntax main)
   (export
+   values->list
+   values-as-list
    all-of
    any-of
    expand-top-level)
@@ -30,6 +32,23 @@
        (if (fxzero? mask) (error 'any-of "Predicates not valid")
 	   (let ([preds (lambda args (or (apply pred args) ...))])
 	     (procedure-arity-restrict preds mask))))]))
+
+(define values-as-list
+  (lambda (proc)
+    (assert (procedure? proc))
+    (let ([mask (procedure-arity-mask proc)])
+      (let ([comb (lambda args
+		    (call-with-values
+			(lambda () (apply proc args))
+		      (lambda li li)))])
+	(procedure-arity-restrict comb mask)))))
+ (define-syntax values->list
+  (syntax-rules ()
+    [(_ exp)
+     (call-with-values
+	 (lambda () exp)
+       (lambda li li))]))
 )
 	   
+
 
