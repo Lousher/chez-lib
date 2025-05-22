@@ -42,6 +42,7 @@
 			(lambda () (apply proc args))
 		      (lambda li li)))])
 	(procedure-arity-restrict comb mask)))))
+
  (define-syntax values->list
   (syntax-rules ()
     [(_ exp)

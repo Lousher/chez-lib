@@ -1,0 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <uv.h>
+
+typedef struct my_time {
+  int64_t now;
+} my_time_t;

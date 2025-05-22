@@ -1,5 +1,5 @@
 (library
-    (syntax combinator)
+  (syntax combinator)
 
   (export
    spread-apply
