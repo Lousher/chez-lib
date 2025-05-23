@@ -1,0 +1,40 @@
+#include <uv.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void on_write(uv_write_t *req, int status) { free(req); }
+
+void on_new_connection(uv_stream_t* server, int status) {
+  if (status < 0) return;
+
+  uv_tcp_t *client = malloc(sizeof(uv_tcp_t));
+  uv_tcp_init(uv_default_loop(), client);
+  uv_accept(server, (uv_stream_t*)client);
+
+  const char* response =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html\r\n"
+    "Content-length: 37\r\n\r\n"
+    "<html><body>Hello World</body></html>";
+
+  uv_write_t *write_req = malloc(sizeof(uv_write_t));
+  uv_buf_t buf = uv_buf_init((char*)response, strlen(response));
+  uv_write(write_req, (uv_stream_t*)client, &buf, 1, on_write);
+}
+#define MSG "Server Running at 8080\n"
+int main() {
+  uv_loop_t *loop = uv_default_loop();
+  uv_tcp_t server;
+  uv_tcp_init(loop, &server);
+
+  struct sockaddr_in addr;
+
+  uv_ip4_addr("0.0.0.0", 8080, &addr);
+  uv_tcp_bind(&server, (const struct sockaddr*)&addr, 0);
+  uv_listen((uv_stream_t*)&server, 128, on_new_connection);
+
+  printf(MSG);
+
+  return uv_run(loop, UV_RUN_DEFAULT);
+  
+}
